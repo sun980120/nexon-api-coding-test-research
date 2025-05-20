@@ -7,7 +7,7 @@ import { ActionType } from "../enums/action.type";
 export class UserActionLog {
     @Prop({ required: true })
     userId: string;
-    @Prop({ required: true }) eventId: string; // 이벤트별 구분!
+    @Prop({ required: false }) eventId: string; // 이벤트별 구분!
     @Prop({ required: true, enum: ActionType })
     actionType: string;
 

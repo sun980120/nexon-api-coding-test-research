@@ -9,12 +9,13 @@ export class RequestController {
 
 
     @MessagePattern({ cmd: 'create-request' })
-    async handleCreateRequest(@Body() dto: RewardRequestDto) {
-        return this.requestService.createRequest(dto.userId, dto.eventId);
+    async handleCreateRequest(dto: RewardRequestDto) {
+        console.log(dto)
+        return this.requestService.createRequest(dto);
     }
 
     @MessagePattern({ cmd: 'get-request' })
-    findAll(@Body() dto: RewardRequestDto) {
+    findAll(dto: RewardRequestDto) {
         return dto.userId
         ? this.requestService.findByUser(dto.userId)
             : this.requestService.findAll();

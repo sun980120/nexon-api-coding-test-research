@@ -7,4 +7,5 @@ export class RequestCreateEventDto {
     startDate: Date;
     endDate: Date;
     isActive?: boolean;
+    autoApprove?: boolean;
 }

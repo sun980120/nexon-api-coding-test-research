@@ -30,7 +30,7 @@ export class RequestController {
     dto.userId = req.user.sub;  // JWT에서 추출된 사용자 ID
     return this.eventServiceClient.send(
       { cmd: 'create-request' },
-      { dto },
+      dto,
     );
   }
 
