@@ -8,6 +8,8 @@ import { EventService } from '../events/event.service';
 import { UserActionLogsService } from '../user-action-logs/user-action-logs.service';
 import { EventDocument } from "../events/schemas/event.schema";
 import { RewardRequestDto } from "./dtos/rewarod.request.dto";
+import { ActionType } from "../user-action-logs/enums/action.type";
+import { RpcException } from "@nestjs/microservices";
 
 @Injectable()
 export class RequestService {
@@ -20,21 +22,19 @@ export class RequestService {
 
     async createRequest(dto: RewardRequestDto) {
         const { userId, eventId } = dto;
-        console.log(dto);
-        console.log(userId, eventId);
         // 1. 중복 요청 체크
-        const exists = await this.requestModel.exists({ userId, eventId });
-        if (exists) throw new ConflictException('이미 요청된 이벤트입니다.');
-        console.log(1)
+        const exists = await this.requestModel.exists({ userId, eventId, status: { $ne: RequestStatus.REJECTED} });
+        if (exists) throw new RpcException({
+            statusCode: 409,
+            message: '이미 요청된 이벤트입니다.'
+        });
 
         // 2. 이벤트 조회
-        console.log('[RequestService] 이벤트 ID:', eventId);
         const event = await this.eventService.findById(eventId);
-        if (!event) {
-            console.error('[RequestService] 이벤트 없음:', eventId);
-            throw new NotFoundException('존재하지 않는 이벤트입니다.');
-        }
-        console.log(2)
+        if (!event) throw new RpcException({
+            statusCode: 404,
+            message: '존재하지 않는 이벤트입니다.'
+        });
         // 3. 조건 검증 (예: 7일 연속 출석)
         let isValid = false;
         switch (event.conditionType) {
@@ -45,35 +45,30 @@ export class RequestService {
                 isValid = await this.validateInvitations(userId, event);
                 break;
         }
-        console.log(3)
 
         // 4. 상태 결정
         const status = event.autoApprove ?
             (isValid ? RequestStatus.APPROVED : RequestStatus.REJECTED)
             : RequestStatus.PENDING;
-        console.log(4)
         // 5. 요청 생성
         const request = await this.requestModel.create({ userId, eventId, status });
-        console.log(6)
+
         // 6. 자동 승인 시 보상 지급
-        if (status === RequestStatus.APPROVED) {
-            await this.actionLogsService.logReward(userId, eventId);
-        }
-        console.log(6)
+        if (status === RequestStatus.APPROVED) await this.actionLogsService.logReward(userId, eventId);
         return request;
     }
 
     private async validateAttendance(userId: string, event: EventDocument) {
         const logs = await this.actionLogsService.findActionsByUser(userId, {
-            startDate: event.startDate,
-            endDate: event.endDate,
-            actionType: 'ATTENDANCE'
+            startDate: event.startDate, // ✅ timestamp 필드의 $gte로 매핑
+            endDate: event.endDate,     // ✅ timestamp 필드의 $lte로 매핑
+            actionType: ActionType.ATTENDANCE
         });
         return logs.length >= event.conditionValue;
     }
     private async validateInvitations(userId: string, event: EventDocument): Promise<boolean> {
         // 이벤트 기간 내에 성공한 초대 로그 개수 집계
-        const requiredCount = event.conditionValue || 3; // 예: 3명 초대 필요
+        const requiredCount = event.conditionValue// 예: 3명 초대 필요
         const start = event.startDate;
         const end = event.endDate;
 

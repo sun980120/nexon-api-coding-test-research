@@ -18,11 +18,12 @@ export class EventService {
         return await this.eventModel.find().exec();
     }
 
-// event.service.ts
     async findById(id: string): Promise<EventDocument | null> {
-        console.log('[EventService] 조회 시도 ID:', id);
         const event = await this.eventModel.findById(id).lean();
-        console.log('[EventService] 조회 결과:', event ? event._id : '없음');
         return event;
+    }
+
+    async exists(eventId: string): Promise<boolean> {
+        return !!(await this.eventModel.exists({ _id: eventId }));
     }
 }

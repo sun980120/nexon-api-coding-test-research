@@ -18,8 +18,19 @@ export class UserActionLogsService {
         return "success";
     }
 
-    async findActionsByUser(userId: string, query: any): Promise<UserActionLogDocument[]> {
-        return await this.actionLogModel.find({ userId, ...query }).exec();
+    async findActionsByUser(userId: string, options: {
+        startDate?: Date;
+        endDate?: Date;
+        actionType?: string;
+    }): Promise<UserActionLogDocument[]> {
+        const filter: any = { userId };
+        if (options.actionType) filter.actionType = options.actionType;
+        if (options.startDate || options.endDate) {
+            filter.timestamp = {};
+            if (options.startDate) filter.timestamp.$gte = options.startDate;
+            if (options.endDate) filter.timestamp.$lte = options.endDate;
+        }
+        return this.actionLogModel.find(filter).exec();
     }
     // 초대 성공 로그 카운트 메서드 추가
     async countSuccessfulInvitations(
