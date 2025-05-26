@@ -1,4 +1,11 @@
-# 설계 의도 및 추가 설명
+# Nexon API Coding Test
+
+---
+
+## 🚀 실행 방법 (Docker Compose)
+### 1. 저장소 클론
+git clone https://github.com/your-github-id/nexon-api-coding-test.git
+cd nexon-api-coding-test
 
 ## 이벤트 설계 및 조건 검증 방식
 

@@ -1,6 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { UserActionLogsService } from "./user-action-logs.service";
 import { Reflector } from "@nestjs/core";
+import { ActionType } from "./enums/action.type";
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -10,7 +11,7 @@ export class LoggingInterceptor implements NestInterceptor {
     ) {}
 
     async intercept(context: ExecutionContext, next: CallHandler) {
-        const actionType = this.reflector.get<string>(
+        const actionType = this.reflector.get<ActionType>(
             'logAction',
             context.getHandler()
         );

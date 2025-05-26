@@ -19,6 +19,11 @@ export class EventService {
     }
 
     async findById(id: string): Promise<EventDocument | null> {
-        return await this.eventModel.findById(id).exec();
+        const event = await this.eventModel.findById(id).lean();
+        return event;
+    }
+
+    async exists(eventId: string): Promise<boolean> {
+        return !!(await this.eventModel.exists({ _id: eventId }));
     }
 }

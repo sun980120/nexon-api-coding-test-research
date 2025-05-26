@@ -9,7 +9,7 @@ export class UserActionLogsController {
 
     // 출석, 초대, 퀘스트 등 모든 행동 로그 기록
     @MessagePattern({ cmd: 'create-user-action-log' })
-    async createLog(@Body() dto: RequestUserLogDto) {
+    async createLog(dto: RequestUserLogDto) {
         return await this.userActionLogsService.create(dto);
     }
 }

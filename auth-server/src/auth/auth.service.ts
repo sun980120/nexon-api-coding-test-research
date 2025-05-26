@@ -5,6 +5,7 @@ import { RequestAuthDto } from "./dtos/request.auth.dto";
 import { UserDocument } from "../user/schemas/user.schema";
 import { JwtService } from '@nestjs/jwt';
 import { ResponseTokenDto } from "./dtos/response.token.dto";
+import { RpcException } from "@nestjs/microservices";
 
 @Injectable()
 export class AuthService {
@@ -32,7 +33,10 @@ export class AuthService {
             username,
         );
         if (!user || !(await bcrypt.compare(password, user.password))) {
-            throw new UnauthorizedException('Invalid credentials');
+            throw new RpcException({
+                statusCode: 401,
+                message: 'Invalid credentials'
+            });
         }
         return user;
     }
@@ -40,7 +44,7 @@ export class AuthService {
         try {
             return await this.jwtService.verifyAsync<ResponseTokenDto>(token);
         } catch {
-            return null;
+            throw new RpcException({ statusCode: 401, message: 'Invalid token' });
         }
     }
 }
